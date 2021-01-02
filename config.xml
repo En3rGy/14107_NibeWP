@@ -4,11 +4,11 @@
         <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="0.1">
             <inputs>
             	<input type="string" const_name="s_gwip" init_value="">Nibe UDP GW IP</input>
-				<input type="number" const_name="n_gwportget" init_value="0">Nibe UDP GW get Port</input>
-				<input type="number" const_name="n_gwportset" init_value="0">Nibe UDP GW set Port</input>
-				<input type="number" const_name="n_hsport" init_value="0">HS Port</input>
-				<input type="string" const_name="s_cmdset" init_value="0">Set (json)</input>
-				<input type="string" const_name="s_cmdget" init_value="0">Get (json)</input>				
+				<input type="number" const_name="n_gwportget" init_value="9999">Nibe UDP GW get Port</input>
+				<input type="number" const_name="n_gwportset" init_value="10000">Nibe UDP GW set Port</input>
+				<input type="number" const_name="n_hsport" init_value="9999">HS Port</input>
+				<input type="string" const_name="s_cmdset" init_value="">Set (json)</input>
+				<input type="number" const_name="s_cmdget" init_value="0">Get Register</input>				
             </inputs>
             <outputs>
 				<output type="string" const_name="s_values" init_value="">Werte (json)</output>
