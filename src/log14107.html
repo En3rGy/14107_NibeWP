@@ -2,6 +2,28 @@
 <h1>NibeWP (14107)</h1>
 <p>Der Baustein dient zur Kommunikation mit einer Nibe Wärmepumpe. Der Baustein nutzt hierbei das <a href="https://github.com/fablable/NibeGW-ProdinoMKR">NibeUPD Gateway</a></p>
 
+<p><h2>Vorbereitung</h2></p>
+
+<ol>
+<li>NIBE UDP Gateway läuft, s. z.B. das <a href="https://github.com/fablable/NibeGW-ProdinoMKR">NIBE UDP Gateway auf Prodino MKR</a></li>
+<li>Mit NIBE Modbus Manager:
+  <ol>
+    <li>In NIBE Modbus Manager Modell der Wärmepumpe auswählen</li>
+    <li>Mit File - Export, Datei <i>export.csv</i> generieren</li>
+  </ol>
+</li>
+<li><i>export.csv</i> mittels <i>hsupload</i> auf den HS laden:
+  <ol>
+    <li><i>hsupload</i> ist normalerweise unter folgendem Pfad zu finden:<br>
+    "c:\users\user_name\Documents\Gira\HS+FS Experte 4.11\Projekte\project_name\project_name\hsupload"<br>
+    </li>
+    <li>In <i>hsupload</i> ddie UNterverzeichnisse <i>\_logic\14107</i> anlegen</li>
+    <li><i>export.csv</i> in das neue Unterverzeichnis kopieren. Der Komplette Pfad zur Datei könnte dann so aussehen:<br>
+    "c:\users\user_name\Documents\Gira\HS+FS Experte 4.11\Projekte\project_name\project_name\hsupload\_logic\14107\export.csv"</li>
+  </ol>
+</li>	
+</ol>
+
 <h2 >Eingänge</h2>
 
 <table border=1>
