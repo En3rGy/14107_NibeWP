@@ -22,6 +22,8 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         self.PIN_I_S_CMDSET=5
         self.PIN_I_S_CMDGET=6
         self.PIN_O_S_VALUES=1
+        self.PIN_O_S_MODEL=2
+        self.PIN_O_N_VER=3
         self.FRAMEWORK._run_in_context_thread(self.on_init)
 
 ########################################################################################################
@@ -30,20 +32,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     g_msg = 0
     g_register = {}
-
-
-    def sendData(self, port, data):
-        #print("Running sendData")
-        ipaddr = str(self._get_input_value(self.PIN_I_S_GWIP))
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-        # connect the socket, think of it as connecting the cable to the address location
-        s.connect((ipaddr, port))
-        # send the command
-        print("Connecting to " + ipaddr + ":" + str(port) + " for sending " + self.printHex(data))
-        s.send(data)
-        # close the socket
-        s.close()
 
 
     def listen(self):
@@ -118,7 +106,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         inMsg = bytearray(msg)
         outMsg = []
 
-        print("- " + self.printHex(msg))
+        #print("- " + self.printHex(msg))
 
         for i in range(len(inMsg)):
             if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
@@ -148,8 +136,8 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     def calcChkSm(self, msg):
-        chkSm = 0
-        for x in msg:
+        chkSm = 0x00
+        for x in (msg):
             chkSm = chkSm ^ x
         return chkSm
 
@@ -219,13 +207,14 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     print("- Unknown size")
     
                 # write value
-                res[reg] = self.g_register[reg]
+                res[reg]= {}
+                res[reg]["Title"] = self.g_register[reg]["Title"]
                 res[reg]["value"] = val
     
             return res
 
         except Exception as e:
-            self.DEBUG.add_message("14107 parseRegister: " + str(e))
+            self.DEBUG.add_message("ERROR 14107 parseRegister: " + str(e))
 
 
     def parseData(self, msg):
@@ -236,8 +225,11 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             #addr = msg[1]
             cmd = msg[2]
             #length = msg[3]
-            #crc = msg[-1]
             data = msg[4:-2]
+            #crc = msg[-1]
+            
+            self.DEBUG.set_value("14107 raw msg " + str(hex(cmd)), 
+                           str(hex(0x5c)) + self.printByteArray(msg))
     
             # remove escaping of startbyte 0x5c
             i = 0
@@ -260,34 +252,37 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             # ignore, seems to be a confirmation of an executed command
             # 5c00206c01014c
             elif (cmd == 0x6c): # and $msg eq "5c00206c01014c") {
-                print("- Msg 0x6c not implemented")
+                pass
+            #print("- Msg 0x6c not implemented")
 
             # readingsBulkUpdate
             elif (cmd == 0x6d): #and substr($msg, 10, 2*$length) =~ m/(.{2})(.{4})(.*)/) {
-                print(self.printByteArray(data))
-    
-                ver = self.hex2int(data[0:3])
+                #ver = self.hex2int(data[0:3])
+                ver = self.bytearray2int(data[1:3])
                 prod = data[3:]
-                self.DEBUG.set_value("Nibe SW Version", ver)
-                self.DEBUG.set_value("Nibe Product", prod)
+                self._set_output_value(self.PIN_O_N_VER, ver)
+                self._set_output_value(self.PIN_O_S_MODEL, prod)
 
             # 0x5c 0x0 0x20 0xee 0x0 0xce
             elif (cmd == 0xee):
-                print("- Msg 0xee not implemented")
+                pass
+                #print("- Msg 0xee not implemented")
 
             else:
-                print("- unknown msg")
+                pass
+                #print("- unknown msg")
 
         except Exception as e:
-            self.DEBUG.add_message("14107 parseData: " + str(e))
+            self.DEBUG.add_message("ERROR 14107 parseData: " + str(e))
 
 
     def printHex(self, data):
-        return " ".join(hex(ord(n)) for n in data)
-
-
-    def getHexRegister(self, register):
-        return self.getHexValue(register, "u8")
+        #return " ".join(hex(ord(n)) for n in data)
+        byte = bytearray(data)
+        s = ""
+        for i in byte:
+            s = s + str(hex(i)) + " "
+        return s
 
 
     def getHexValue(self, value, size):
@@ -311,62 +306,61 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             val4 = value & 0xFF000000
             val2 = val2 >> 8
             val3 = val3 >> 16
-            val4 = val4 >> 24
+            val4 = val4 >> 32
 
-            val = chr(val1) + chr(val2)  + chr(val3) + chr(val4)
+            val = chr(val1) + chr(val2) + chr(val3) + chr(val4)
 
-        #print("- " + str(value) + " (" + str(size) + ") = " + self.printHex(val))
         return val
+
+    def sendData(self, port, data):
+        ipaddr = str(self._get_input_value(self.PIN_I_S_GWIP))
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
+        # connect the socket, think of it as connecting the cable to the address location
+        s.connect((ipaddr, port))
+        self.DEBUG.set_value("14107 last send", "Sending " + self.printHex(data) + "to " + ipaddr + ":" + str(port))
+        s.send(data)
+        s.close()
 
 
     def readRegister(self, register):
-        try:
-            # c0 69 02 rr rr cc
-            #print("Running readRegister")
-    
+        try:    
             msg = "\xc0\x69\x02"
-            reg = self.getHexRegister(register)
-    
+            reg = self.getHexValue(register, "u8")
             msg = msg + reg
-            msg = msg + chr(self.calcChkSm(bytearray(msg)[1:]))
-            #print ("- " + self.printHex(msg))
-            
+            chksm = self.calcChkSm(bytearray(msg))
+            msg = msg + chr(chksm)
+
             port = int(self._get_input_value(self.PIN_I_N_GWPORTGET))
             self.sendData(port, msg)
         except Exception as e:
-            self.DEBUG.add_message("14107 readRegister: " + str(e))
+            self.DEBUG.add_message("ERROR 14107 readRegister: " + str(e))
 
 
     def writeRegister(self, register, value):
-        # c0 6b 06 rr rr vv vv vv vv cc
-        #  2  1  4  3  2  1
         try:
-            print("Running writeRegister")
-
             msg = "\xc0\x6b\x06"
 
-            reg = self.getHexRegister(register)
+            reg = self.getHexValue(register, "u8")
             msg = msg + reg
 
-            # @todo calc value
             mode = self.g_register[register]["Mode"]
-            if ("W" not in mode) or ("w" not in mode):
+            if ("W" not in mode) and ("w" not in mode):
                 self.DEBUG.add_message("14107 writeRegister: Register " + str(register) + " is read only. Aborting send.")
                 return
     
             factor = self.g_register[register]["Factor"]
             value = int(value * factor)
-            size = self.g_register[register]["Size"]
-            value = self.getHexValue(value, size)
+            #size = self.g_register[register]["Size"]
+            value = self.getHexValue(value, "u32")
+            msg = msg + value
 
-            msg = msg + chr(self.calcChkSm(bytearray(msg)[1:]))
-            print ("- " + self.printHex(msg))
+            chksm = self.calcChkSm(bytearray(msg))
+            msg = msg + chr(chksm)
 
             port = int(self._get_input_value(self.PIN_I_N_GWPORTSET))
             self.sendData(port, msg)
         except Exception as e:
             self.DEBUG.add_message("14107 writeRegister: " + str(e))
-
 
 
     def printByteArray(self, data):
@@ -388,11 +382,22 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
         return val
 
+    def bytearray2int(self, msg):
+        val = 0
+        #print(hex(msg[-1]))
+        val = val | msg[0]
+        msg = msg[1:]
+        for byte in msg[:]:
+            #print(hex(byte))
+            val = val << 8
+            val = val | byte
+
+        return val
 
 
     def on_init(self):
-        print("Running on_init")
         self.DEBUG = self.FRAMEWORK.create_debug_section()
+        self.readExport()
 
         x = threading.Thread(target=self.listen)
         x.start()

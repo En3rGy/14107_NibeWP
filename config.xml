@@ -12,6 +12,8 @@
             </inputs>
             <outputs>
 				<output type="string" const_name="s_values" init_value="">Werte (json)</output>
+				<output type="string" const_name="s_model" init_value="">Modell</output>
+				<output type="number" const_name="n_ver" init_value="0">SW Version</output>
             </outputs>               
 			<remanent_variables>
             </remanent_variables>
