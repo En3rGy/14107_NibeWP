@@ -142,13 +142,13 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         return chkSm
 
 
-    def parseRegister(self, data):
+    def parseRegister(self, data, cmd6a = False):
         try:
             reg = 0
             res = {}
             i = 0
             while i < len(data):
-    
+
                 # register
                 reg = self.hex2int(data[i: i + 2])
     
@@ -167,18 +167,19 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 # value
                 size = self.g_register[reg]["Size"]
                 factor = self.g_register[reg]["Factor"]
-    
-                #print("- Register: " + str(reg) + "; size: " + size + "; factor: " + str(factor))
-    
+
                 if (size == "s8") or (size == "u8"):
-    
-                    val = self.hex2int(data[i:i + 2]) / factor
-                    #print("- Value: " + str(val))
+                    if (data[i+1] & 0x80 == 0x80) and (size == "s8"):
+                        val = self.complement2(data[i:i + 2]) / factor
+                    else:
+                        val = self.hex2int(data[i:i + 2]) / factor
                     i = i + 2
-    
+
                 elif (size == "s16") or (size == "u16"):
-                    val = self.hex2int(data[i:i + 2]) / factor
-                    #print("- Value: " + str(val))
+                    if (data[i+1] & 0x80 == 0x80) and (size == "s16"):
+                        val = self.complement2(data[i:i + 2]) / factor
+                    else:
+                        val = self.hex2int(data[i:i + 2]) / factor
                     i = i + 2
     
                 elif (size == "s32") or (size == "u32"):
@@ -207,9 +208,9 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     print("- Unknown size")
     
                 # write value
-                res[reg]= {}
-                res[reg]["Title"] = self.g_register[reg]["Title"]
-                res[reg]["value"] = val
+                res[str(reg)]= {}
+                res[str(reg)]["Title"] = self.g_register[reg]["Title"]
+                res[str(reg)]["value"] = val
     
             return res
 
@@ -230,7 +231,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             
             self.DEBUG.set_value("14107 raw msg " + str(hex(cmd)), 
                            str(hex(0x5c)) + self.printByteArray(msg))
-    
+
             # remove escaping of startbyte 0x5c
             i = 0
             while i < len(data) - 1:
@@ -238,7 +239,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     data.pop(i)
                     print("- Removed 0x5c escaping")
                 i = i + 1
-    
+
             # 20 value register msg
             if (cmd == 0x68):
                 ret = self.parseRegister(data)
@@ -246,6 +247,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
     
             # response for single register request
             elif(cmd == 0x6a):
+                # @todo value always 32bit!
                 ret = self.parseRegister(data)
                 self._set_output_value(self.PIN_O_S_VALUES, ret)
     
@@ -277,7 +279,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     def printHex(self, data):
-        #return " ".join(hex(ord(n)) for n in data)
         byte = bytearray(data)
         s = ""
         for i in byte:
@@ -286,7 +287,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     def getHexValue(self, value, size):
-
         if (size=="s8" or size=="u8"):
             val1 = value & 0x00FF
             val2 = value & 0xFF00
@@ -372,7 +372,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     def hex2int(self, msg):
         val = 0
-        #print(hex(msg[-1]))
         val = val | msg[-1]
         msg = msg[0:-1]
         for byte in msg[::-1]:
@@ -395,6 +394,20 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         return val
 
 
+    # data shall not yet be re-ordered (use orig byte order)
+    def complement2(self, data):
+        for i in range(len(data)):
+            data[i] ^= 0xFF
+
+        res = []
+        for x in data[::-1]:
+            res.append(x)
+
+        val = self.bytearray2int(res)
+        val = val + 1
+        return -val
+
+
     def on_init(self):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
         self.readExport()
@@ -404,4 +417,11 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     def on_input_value(self, index, value):
-        pass
+        if (index == self.PIN_I_S_CMDGET):
+            self.readRegister(value)
+
+        if (index == self.PIN_I_S_CMDSET):
+            register = 0
+            val = 0
+            val = json.loads(value)
+            self.writeRegister(val["register", val["value"])
