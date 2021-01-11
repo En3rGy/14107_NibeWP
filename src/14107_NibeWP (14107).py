@@ -1,8 +1,31 @@
 # coding: UTF-8
 
+# Copyright 2021 T. Paul</p>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+# SOFTWARE.
+
+
 import json
 import socket
 import threading
+import urllib2
+
 
 ##!!!!##################################################################################################
 #### Own written code can be placed above this commentblock . Do not change or delete commentblock! ####
@@ -21,9 +44,50 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         self.PIN_I_N_HSPORT=4
         self.PIN_I_S_CMDSET=5
         self.PIN_I_S_CMDGET=6
+        self.PIN_I_S_REG01=7
+        self.PIN_I_S_REG02=8
+        self.PIN_I_S_REG03=9
+        self.PIN_I_S_REG04=10
+        self.PIN_I_S_REG05=11
+        self.PIN_I_S_REG06=12
+        self.PIN_I_S_REG07=13
+        self.PIN_I_S_REG08=14
+        self.PIN_I_S_REG09=15
+        self.PIN_I_S_REG10=16
+        self.PIN_I_S_REG11=17
+        self.PIN_I_S_REG12=18
+        self.PIN_I_S_REG13=19
+        self.PIN_I_S_REG14=20
+        self.PIN_I_S_REG15=21
+        self.PIN_I_S_REG16=22
+        self.PIN_I_S_REG17=23
+        self.PIN_I_S_REG18=24
+        self.PIN_I_S_REG19=25
+        self.PIN_I_S_REG20=26
         self.PIN_O_S_VALUES=1
         self.PIN_O_S_MODEL=2
         self.PIN_O_N_VER=3
+        self.PIN_O_N_GETREG=4
+        self.PIN_O_N_REG01=5
+        self.PIN_O_N_REG02=6
+        self.PIN_O_N_REG03=7
+        self.PIN_O_N_REG04=8
+        self.PIN_O_N_REG05=9
+        self.PIN_O_N_REG06=10
+        self.PIN_O_N_REG07=11
+        self.PIN_O_N_REG08=12
+        self.PIN_O_N_REG09=13
+        self.PIN_O_N_REG10=14
+        self.PIN_O_N_REG11=15
+        self.PIN_O_N_REG12=16
+        self.PIN_O_N_REG13=17
+        self.PIN_O_N_REG14=18
+        self.PIN_O_N_REG15=19
+        self.PIN_O_N_REG16=20
+        self.PIN_O_N_REG17=21
+        self.PIN_O_N_REG18=22
+        self.PIN_O_N_REG19=23
+        self.PIN_O_N_REG20=24
         self.FRAMEWORK._run_in_context_thread(self.on_init)
 
 ########################################################################################################
@@ -32,8 +96,20 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     g_msg = 0
     g_register = {}
+    g_out = {}
+
+    # HS und Modbus arbeiten mit bigendian, Windows mit littleendian
+    g_bigendian = True
+
+    # Re-ordering / inversing the byte order
+    def shiftBytes(self, msg):
+        res = []
+        for x in msg[::-1]:
+            res.append(x)
+        return res
 
 
+    # Main server loop, listening for incomming messages
     def listen(self):
         ## declare our serverSocket upon which
         ## we will be listening for UDP messages
@@ -44,9 +120,8 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         UDP_PORT_NO = self._get_input_value(self.PIN_I_N_HSPORT)
 
         try:
+            
             serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
-    
-            #print("Waiting for data")
             data = ""
 
             while True:
@@ -62,31 +137,23 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             serverSock.close()
 
 
+    # Reads the Modbus Manager export file which is provided to the HS, 
+    # see HS help for "hsupload"
     def readExport(self):
-        # Daten-Ablage in einem 'hsupload'-Unterverzeichnis
-        
-        # Im Unterverzeichnis _logic des Ordners hsupload können Dateien 
-        # abgelegt werden, die über die URL 
-        # "http://127.0.0.1:65000/logic/[namespace]/[dateiname]" erreicht 
-        # werden, ein Zugriff über LAN ist nicht möglich!
-        # Es wird empfohlen, unterhalb von _logic ein weiteres Verzeichnis als 
-        # "Namespace" anzulegen, damit sich bei zukünftiger Verwendung keine 
-        # Probleme durch Nutzung von verschiedenen Stellen aus ergeben. Der 
-        # "Namespace" könnte z.B. die Baustein-ID oder ein beliebiger Schlüssel 
-        # sein.
-        # Als Anwendungsmöglichkeit bietet sich z.B. die Ablage von 
-        # Konfigurationsdaten für den jeweiligen Logikbaustein an.
-
-        target_url = 'http://127.0.0.1:65000/logic/14107/export.csv'
-        datafile = urllib2.urlopen(target_url)
-        self.parseExport(datafile)
+        try:
+            target_url = 'http://127.0.0.1:65000/logic/14107/export.csv'
+            datafile = urllib2.urlopen(target_url)
+            self.DEBUG.add_message("14107 readExport: Load Modbus Manager file with " + str(len(datafile.readlines())) + " lines.")
+            self.parseExport(datafile)
+        except Exception as e:
+            self.DEBUG.add_message("ERROR 14107 readExport: " + str(e))
 
 
+    # Parses the Modbus Manager export file and stores the content to self.g_register
     def parseExport(self, datafile):
         #print("Running parseExport")
         self.g_register = {}
 
-        # @todo convert to json  id -> other keys: values
         for row in datafile:
             row = row.replace('"', '')
             data = row.split(';')
@@ -100,7 +167,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             except Exception as e:
                 self.DEBUG.add_message("14107 parseExport: " + str(e) + " with '" + str(data) + "'")
 
-
+    # Checks the integrity of a received message
     def chkMsg(self, msg):
         #print("Running chkMsg")
         inMsg = bytearray(msg)
@@ -114,34 +181,33 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 break
 
         if(len(outMsg) < 4):
-            print("- Msg too short")
+            self.DEBUG.add_message("chkMsg: Msg too short")
             return inMsg, False
 
         msgLen = int(outMsg[3])
         cntLen = len(outMsg[4:-1])
 
         if (cntLen < msgLen):
-            print("- Length error, counted " + str(cntLen))
+            self.DEBUG.add_message("chkMsg: Length error")
             return inMsg, False
 
         msgChkSm = outMsg[msgLen + 4]
         chksm = self.calcChkSm(outMsg[:-1])
         if (chksm != msgChkSm):
-            print("Checksum error, calculated: " + str(hex(chksm)))
+            self.DEBUG.add_message("chkMsg: Checksum error")
             return inMsg, False
-
-        #print("- Msg is OK!")
 
         return outMsg, True
 
 
+    # Calculates XOR checksum
     def calcChkSm(self, msg):
         chkSm = 0x00
         for x in (msg):
             chkSm = chkSm ^ x
         return chkSm
 
-
+    # Parses the data block of an incomming message
     def parseRegister(self, data, cmd6a = False):
         try:
             reg = 0
@@ -151,6 +217,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
                 # register
                 reg = self.hex2int(data[i: i + 2])
+                self.DEBUG.set_value("Last register received", reg)
     
                 # reg = 0xffff -> skip and following data
                 if (reg == 65535 or reg == 0):
@@ -161,7 +228,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 i = i + 2
     
                 if reg not in self.g_register:
-                    print("- Register " + str(reg) + " not known. Abort parse")
+                    self.DEBUG.add_message("Register not known. Abort parse.")
                     continue
     
                 # value
@@ -205,13 +272,19 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                         i = i + 6
     
                 else:
-                    print("- Unknown size")
+                    self.DEBUG.add_message("ERROR parseRegister: size of value unknown.")
     
                 # write value
                 res[str(reg)]= {}
                 res[str(reg)]["Title"] = self.g_register[reg]["Title"]
                 res[str(reg)]["value"] = val
-    
+                self.DEBUG.set_value(str(reg), str(val))
+
+                if ("out" in self.g_register[reg]):
+                    outPin = self.g_register[reg]["out"]
+                    if (outPin != 0):
+                        self._set_output_value(outPin, val)
+
             return res
 
         except Exception as e:
@@ -243,13 +316,15 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             # 20 value register msg
             if (cmd == 0x68):
                 ret = self.parseRegister(data)
-                self._set_output_value(self.PIN_O_S_VALUES, ret)
+                jsn = str(ret).replace("'", '"')  # exchange ' by "
+                self._set_output_value(self.PIN_O_S_VALUES, jsn)
     
             # response for single register request
             elif(cmd == 0x6a):
                 # @todo value always 32bit!
                 ret = self.parseRegister(data)
-                self._set_output_value(self.PIN_O_S_VALUES, ret)
+                jsn = str(ret).replace("'", '"')  # exchange ' by "
+                self._set_output_value(self.PIN_O_S_VALUES, jsn)
     
             # ignore, seems to be a confirmation of an executed command
             # 5c00206c01014c
@@ -260,7 +335,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             # readingsBulkUpdate
             elif (cmd == 0x6d): #and substr($msg, 10, 2*$length) =~ m/(.{2})(.{4})(.*)/) {
                 #ver = self.hex2int(data[0:3])
-                ver = self.bytearray2int(data[1:3])
+                ver = self.hex2int(data[1:3])
                 prod = data[3:]
                 self._set_output_value(self.PIN_O_N_VER, ver)
                 self._set_output_value(self.PIN_O_S_MODEL, prod)
@@ -371,27 +446,21 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     def hex2int(self, msg):
+        if (not self.g_bigendian):
+            msg = self.shiftBytes(msg)
+
         val = 0
+        self.DEBUG.set_value("hex2int input", self.printByteArray(msg))
         val = val | msg[-1]
         msg = msg[0:-1]
-        for byte in msg[::-1]:
+        for byte in msg:
             #print(hex(byte))
             val = val << 8
             val = val | byte
 
-        return val
+        self.DEBUG.set_value("hex2int output", int(val))
 
-    def bytearray2int(self, msg):
-        val = 0
-        #print(hex(msg[-1]))
-        val = val | msg[0]
-        msg = msg[1:]
-        for byte in msg[:]:
-            #print(hex(byte))
-            val = val << 8
-            val = val | byte
-
-        return val
+        return int(val)
 
 
     # data shall not yet be re-ordered (use orig byte order)
@@ -403,13 +472,15 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         for x in data[::-1]:
             res.append(x)
 
-        val = self.bytearray2int(res)
+        val = self.hex2int(res)
         val = val + 1
         return -val
 
 
     def on_init(self):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
+
+        self.DEBUG.set_value(self.printByteArray(bytearray("\x9c\x44")), self.hex2int(bytearray("\x9c\x44")))
         self.readExport()
 
         x = threading.Thread(target=self.listen)
@@ -420,8 +491,18 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         if (index == self.PIN_I_S_CMDGET):
             self.readRegister(value)
 
-        if (index == self.PIN_I_S_CMDSET):
-            register = 0
-            val = 0
-            val = json.loads(value)
-            self.writeRegister(val["register", val["value"])
+        elif (index == self.PIN_I_S_CMDSET):
+            val = value.split(':')
+            register = int(val[0])
+            val = float(val[1])
+            self.writeRegister(register, val)
+
+        elif (index >= self.PIN_I_S_REG01):
+            outId = index - self.PIN_I_S_REG01 + self.PIN_O_N_REG01
+            self.g_register[value]["out"] = outId
+            oldReg = 0
+
+            if (outId in self.g_out):
+                oldReg = self.g_out[outId]
+                self.g_register[oldReg]["out"] = 0
+                self.g_out[outId] = value

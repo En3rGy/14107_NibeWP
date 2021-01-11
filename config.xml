@@ -3,17 +3,58 @@
     <modules>
         <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="0.1">
             <inputs>
-            	<input type="string" const_name="s_gwip" init_value="">Nibe UDP GW IP</input>
+            	<input type="string" const_name="s_gwip" init_value="">E1 Nibe UDP GW IP</input>
 				<input type="number" const_name="n_gwportget" init_value="9999">Nibe UDP GW get Port</input>
 				<input type="number" const_name="n_gwportset" init_value="10000">Nibe UDP GW set Port</input>
 				<input type="number" const_name="n_hsport" init_value="9999">HS Port</input>
-				<input type="string" const_name="s_cmdset" init_value="">Set (json)</input>
-				<input type="number" const_name="s_cmdget" init_value="0">Get Register</input>				
+				<input type="string" const_name="s_cmdset" init_value="">Set Register</input>
+				<input type="number" const_name="s_cmdget" init_value="0">Get Register</input>
+                <input type="number" const_name="s_reg01" init_value="0">Register 01</input>
+                <input type="number" const_name="s_reg02" init_value="0">Register 02</input>
+                <input type="number" const_name="s_reg03" init_value="0">Register 03</input>
+                <input type="number" const_name="s_reg04" init_value="0">Register 04</input>
+                <input type="number" const_name="s_reg05" init_value="0">Register 05</input>
+                <input type="number" const_name="s_reg06" init_value="0">Register 06</input>
+                <input type="number" const_name="s_reg07" init_value="0">Register 07</input>
+                <input type="number" const_name="s_reg08" init_value="0">Register 08</input>
+                <input type="number" const_name="s_reg09" init_value="0">Register 09</input>
+                <input type="number" const_name="s_reg10" init_value="0">Register 10</input>
+                <input type="number" const_name="s_reg11" init_value="0">Register 11</input>
+                <input type="number" const_name="s_reg12" init_value="0">Register 12</input>
+                <input type="number" const_name="s_reg13" init_value="0">Register 13</input>
+                <input type="number" const_name="s_reg14" init_value="0">Register 14</input>
+                <input type="number" const_name="s_reg15" init_value="0">Register 15</input>
+                <input type="number" const_name="s_reg16" init_value="0">Register 16</input>
+                <input type="number" const_name="s_reg17" init_value="0">Register 17</input>
+                <input type="number" const_name="s_reg18" init_value="0">Register 18</input>
+                <input type="number" const_name="s_reg19" init_value="0">Register 19</input>
+                <input type="number" const_name="s_reg20" init_value="0">Register 20</input>				
             </inputs>
             <outputs>
 				<output type="string" const_name="s_values" init_value="">Werte (json)</output>
-				<output type="string" const_name="s_model" init_value="">Modell</output>
+				<output type="string" const_name="s_model" init_value="">Produkt</output>
 				<output type="number" const_name="n_ver" init_value="0">SW Version</output>
+				<output type="number" const_name="n_getreg" init_value="0">Wert Get-Register</output>
+				<output type="number" const_name="n_reg01" init_value="0">Wert 1</output>
+				<output type="number" const_name="n_reg02" init_value="0">Wert 2</output>
+				<output type="number" const_name="n_reg03" init_value="0">Wert 3</output>
+				<output type="number" const_name="n_reg04" init_value="0">Wert 4</output>
+				<output type="number" const_name="n_reg05" init_value="0">Wert 5</output>
+				<output type="number" const_name="n_reg06" init_value="0">Wert 6</output>
+				<output type="number" const_name="n_reg07" init_value="0">Wert 7</output>
+				<output type="number" const_name="n_reg08" init_value="0">Wert 8</output>
+				<output type="number" const_name="n_reg09" init_value="0">Wert 9</output>
+				<output type="number" const_name="n_reg10" init_value="0">Wert 10</output>
+				<output type="number" const_name="n_reg11" init_value="0">Wert 11</output>
+				<output type="number" const_name="n_reg12" init_value="0">Wert 12</output>
+				<output type="number" const_name="n_reg13" init_value="0">Wert 13</output>
+				<output type="number" const_name="n_reg14" init_value="0">Wert 14</output>
+				<output type="number" const_name="n_reg15" init_value="0">Wert 15</output>
+				<output type="number" const_name="n_reg16" init_value="0">Wert 16</output>
+				<output type="number" const_name="n_reg17" init_value="0">Wert 17</output>
+				<output type="number" const_name="n_reg18" init_value="0">Wert 18</output>
+				<output type="number" const_name="n_reg19" init_value="0">Wert 19</output>
+				<output type="number" const_name="n_reg20" init_value="0">Wert 20</output>				
             </outputs>               
 			<remanent_variables>
             </remanent_variables>
