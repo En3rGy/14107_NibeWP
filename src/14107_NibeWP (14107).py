@@ -173,8 +173,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         inMsg = bytearray(msg)
         outMsg = []
 
-        #print("- " + self.printHex(msg))
-
         for i in range(len(inMsg)):
             if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
                 outMsg = inMsg[i+1:]
@@ -217,7 +215,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
                 # register
                 reg = self.hex2int(data[i: i + 2])
-                self.DEBUG.set_value("Last register received", reg)
+                self.DEBUG.add_message("Register received: " + str(self.printByteArray(data[i: i + 2]) + " ~ " + str(reg)))
     
                 # reg = 0xffff -> skip and following data
                 if (reg == 65535 or reg == 0):
@@ -229,7 +227,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
     
                 if reg not in self.g_register:
                     self.DEBUG.add_message("Register not known. Abort parse.")
-                    continue
+                    return res
     
                 # value
                 size = self.g_register[reg]["Size"]
@@ -293,8 +291,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     def parseData(self, msg):
         try:
-            #print("Running parseData")
-    
             #sender = msg[0]
             #addr = msg[1]
             cmd = msg[2]
@@ -318,6 +314,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 ret = self.parseRegister(data)
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
+                return jsn
     
             # response for single register request
             elif(cmd == 0x6a):
@@ -325,6 +322,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 ret = self.parseRegister(data)
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
+                return jsn
     
             # ignore, seems to be a confirmation of an executed command
             # 5c00206c01014c
@@ -339,6 +337,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 prod = data[3:]
                 self._set_output_value(self.PIN_O_N_VER, ver)
                 self._set_output_value(self.PIN_O_S_MODEL, prod)
+                return str(str(prod) + " / " + str(ver))
 
             # 0x5c 0x0 0x20 0xee 0x0 0xce
             elif (cmd == 0xee):
@@ -353,26 +352,18 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             self.DEBUG.add_message("ERROR 14107 parseData: " + str(e))
 
 
-    def printHex(self, data):
-        byte = bytearray(data)
-        s = ""
-        for i in byte:
-            s = s + str(hex(i)) + " "
-        return s
-
-
     def getHexValue(self, value, size):
         if (size=="s8" or size=="u8"):
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val1) + chr(val2)
+            val = chr(val2) + chr(val1)
 
         elif (size=="s16" or size=="u16"):
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val1) + chr(val2)
+            val = chr(val2) + chr(val1)
 
         elif (size=="s32" or size=="u32"):
             val1 = value & 0x000000FF
@@ -381,9 +372,9 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             val4 = value & 0xFF000000
             val2 = val2 >> 8
             val3 = val3 >> 16
-            val4 = val4 >> 32
+            val4 = val4 >> 24
 
-            val = chr(val1) + chr(val2) + chr(val3) + chr(val4)
+            val = chr(val4) + chr(val3) + chr(val2) + chr(val1)
 
         return val
 
@@ -392,7 +383,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
         # connect the socket, think of it as connecting the cable to the address location
         s.connect((ipaddr, port))
-        self.DEBUG.set_value("14107 last send", "Sending " + self.printHex(data) + "to " + ipaddr + ":" + str(port))
+        self.DEBUG.set_value("14107 last send", "Sending " + self.printByteArray(bytearray(data)) + "to " + ipaddr + ":" + str(port))
         s.send(data)
         s.close()
 
@@ -442,23 +433,19 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         s = ""
         for i in range(len(data)):
             s = s + " " + str(hex(data[i]))
+        s = s[1:]
         return s
 
 
     def hex2int(self, msg):
-        if (not self.g_bigendian):
+        if (self.g_bigendian == False):
             msg = self.shiftBytes(msg)
 
         val = 0
-        self.DEBUG.set_value("hex2int input", self.printByteArray(msg))
-        val = val | msg[-1]
-        msg = msg[0:-1]
-        for byte in msg:
-            #print(hex(byte))
+        val = val | msg[0]
+        for byte in msg[1:]:
             val = val << 8
             val = val | byte
-
-        self.DEBUG.set_value("hex2int output", int(val))
 
         return int(val)
 
@@ -468,11 +455,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         for i in range(len(data)):
             data[i] ^= 0xFF
 
-        res = []
-        for x in data[::-1]:
-            res.append(x)
-
-        val = self.hex2int(res)
+        val = self.hex2int(data)
         val = val + 1
         return -val
 
