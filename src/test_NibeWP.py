@@ -1,24 +1,7 @@
 # coding: UTF-8
 
-# Copyright 2021 T. Paul</p>
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy 
-# of this software and associated documentation files (the "Software"), to deal 
-# in the Software without restriction, including without limitation the rights 
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in 
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-# SOFTWARE.
+import unittest
+
 
 
 import json
@@ -26,73 +9,107 @@ import socket
 import threading
 import urllib2
 
+import time
+from __builtin__ import False
+from pickle import FALSE
 
-##!!!!##################################################################################################
-#### Own written code can be placed above this commentblock . Do not change or delete commentblock! ####
-########################################################################################################
-##** Code created by generator - DO NOT CHANGE! **##
+class NibeWP_14107_14107():
+    
 
-class NibeWP_14107_14107(hsl20_3.BaseModule):
+    def _set_output_value(self, pin, value):
+        print("### Out \tPin " + str(pin) + ", Value: " + str(value))
+        return ("### Out \tPin " + str(pin) + ", Value: " + str(value))
 
-    def __init__(self, homeserver_context):
-        hsl20_3.BaseModule.__init__(self, homeserver_context, "14107_NibeWP")
-        self.FRAMEWORK = self._get_framework()
-        self.LOGGER = self._get_logger(hsl20_3.LOGGING_NONE,())
-        self.PIN_I_S_GWIP=1
-        self.PIN_I_N_GWPORTGET=2
-        self.PIN_I_N_GWPORTSET=3
-        self.PIN_I_N_HSPORT=4
-        self.PIN_I_S_CMDSET=5
-        self.PIN_I_S_CMDGET=6
-        self.PIN_I_S_REG01=7
-        self.PIN_I_S_REG02=8
-        self.PIN_I_S_REG03=9
-        self.PIN_I_S_REG04=10
-        self.PIN_I_S_REG05=11
-        self.PIN_I_S_REG06=12
-        self.PIN_I_S_REG07=13
-        self.PIN_I_S_REG08=14
-        self.PIN_I_S_REG09=15
-        self.PIN_I_S_REG10=16
-        self.PIN_I_S_REG11=17
-        self.PIN_I_S_REG12=18
-        self.PIN_I_S_REG13=19
-        self.PIN_I_S_REG14=20
-        self.PIN_I_S_REG15=21
-        self.PIN_I_S_REG16=22
-        self.PIN_I_S_REG17=23
-        self.PIN_I_S_REG18=24
-        self.PIN_I_S_REG19=25
-        self.PIN_I_S_REG20=26
-        self.PIN_O_S_VALUES=1
-        self.PIN_O_S_MODEL=2
-        self.PIN_O_N_VER=3
-        self.PIN_O_N_GETREG=4
-        self.PIN_O_N_REG01=5
-        self.PIN_O_N_REG02=6
-        self.PIN_O_N_REG03=7
-        self.PIN_O_N_REG04=8
-        self.PIN_O_N_REG05=9
-        self.PIN_O_N_REG06=10
-        self.PIN_O_N_REG07=11
-        self.PIN_O_N_REG08=12
-        self.PIN_O_N_REG09=13
-        self.PIN_O_N_REG10=14
-        self.PIN_O_N_REG11=15
-        self.PIN_O_N_REG12=16
-        self.PIN_O_N_REG13=17
-        self.PIN_O_N_REG14=18
-        self.PIN_O_N_REG15=19
-        self.PIN_O_N_REG16=20
-        self.PIN_O_N_REG17=21
-        self.PIN_O_N_REG18=22
-        self.PIN_O_N_REG19=23
-        self.PIN_O_N_REG20=24
-        self.FRAMEWORK._run_in_context_thread(self.on_init)
+    def _get_input_value(self, pin):
+        if(pin==self.PIN_I_N_HSPORT):
+            return 9999
+        elif(pin==self.PIN_I_N_GWPORTGET):
+            return 9999
+        elif(pin==self.PIN_I_N_GWPORTSET):
+            return 10000
+        elif(pin == self.PIN_I_S_GWIP):
+            return "192.168.143.18"
+        else:
+            return "0"
 
-########################################################################################################
-#### Own written code can be placed after this commentblock . Do not change or delete commentblock! ####
-###################################################################################################!!!##
+
+################################################
+    class DebugHelper():
+        def set_value(self, p_sCap, p_sText):
+            print ("DEBUG value\t" + str(p_sCap) + ": " + str(p_sText))
+            
+        def add_message(self, p_sMsg):
+            print ("Debug Msg\t" + str(p_sMsg))
+
+    DEBUG = DebugHelper()
+
+    class FrameworkHelper():
+        def get_homeserver_private_ip(self):
+            return "192.168.143.30"
+
+        def create_debug_section(self):
+            pass
+
+    FRAMEWORK = FrameworkHelper()
+
+############################################
+
+    #hsl20_3.BaseModule.__init__(self, homeserver_context, "14107_NibeWP")
+    #self.FRAMEWORK = self._get_framework()
+    #self.LOGGER = self._get_logger(hsl20_3.LOGGING_NONE,())
+    PIN_I_S_GWIP=1
+    PIN_I_N_GWPORTGET=2
+    PIN_I_N_GWPORTSET=3
+    PIN_I_N_HSPORT=4
+    PIN_I_S_CMDSET=5
+    PIN_I_S_CMDGET=6
+    PIN_I_S_REG01=7
+    PIN_I_S_REG02=8
+    PIN_I_S_REG03=9
+    PIN_I_S_REG04=10
+    PIN_I_S_REG05=11
+    PIN_I_S_REG06=12
+    PIN_I_S_REG07=13
+    PIN_I_S_REG08=14
+    PIN_I_S_REG09=15
+    PIN_I_S_REG10=16
+    PIN_I_S_REG11=17
+    PIN_I_S_REG12=18
+    PIN_I_S_REG13=19
+    PIN_I_S_REG14=20
+    PIN_I_S_REG15=21
+    PIN_I_S_REG16=22
+    PIN_I_S_REG17=23
+    PIN_I_S_REG18=24
+    PIN_I_S_REG19=25
+    PIN_I_S_REG20=26
+    PIN_O_S_VALUES=1
+    PIN_O_S_MODEL=2
+    PIN_O_N_VER=3
+    PIN_O_N_GETREG=4
+    PIN_O_N_REG01=5
+    PIN_O_N_REG02=6
+    PIN_O_N_REG03=7
+    PIN_O_N_REG04=8
+    PIN_O_N_REG05=9
+    PIN_O_N_REG06=10
+    PIN_O_N_REG07=11
+    PIN_O_N_REG08=12
+    PIN_O_N_REG09=13
+    PIN_O_N_REG10=14
+    PIN_O_N_REG11=15
+    PIN_O_N_REG12=16
+    PIN_O_N_REG13=17
+    PIN_O_N_REG14=18
+    PIN_O_N_REG15=19
+    PIN_O_N_REG16=20
+    PIN_O_N_REG17=21
+    PIN_O_N_REG18=22
+    PIN_O_N_REG19=23
+    PIN_O_N_REG20=24
+    #self.FRAMEWORK._run_in_context_thread(self.on_init)
+
+############################################
 
     g_msg = 0
     g_register = {}
@@ -174,36 +191,33 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     # Checks the integrity of a received message
     def chkMsg(self, msg):
-        try:
-            #print("Running chkMsg")
-            inMsg = bytearray(msg)
-            outMsg = []
-    
-            for i in range(len(inMsg)):
-                if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
-                    outMsg = inMsg[i+1:]
-                    break
-    
-            if(len(outMsg) < 4):
-                self.DEBUG.add_message("chkMsg: Msg too short, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
-            msgLen = int(outMsg[3])
-            cntLen = len(outMsg[4:-1])
-    
-            if (cntLen < msgLen):
-                self.DEBUG.add_message("chkMsg: Length error, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
-            msgChkSm = outMsg[msgLen + 4]
-            chksm = self.calcChkSm(outMsg[:-1])
-            if (chksm != msgChkSm):
-                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
-            return outMsg, True
-        except Exception as e:
-            self.DEBUG.add_message("ERROR chkMsg: " + str(e))
+        #print("Running chkMsg")
+        inMsg = bytearray(msg)
+        outMsg = []
+
+        for i in range(len(inMsg)):
+            if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
+                outMsg = inMsg[i+1:]
+                break
+
+        if(len(outMsg) < 4):
+            self.DEBUG.add_message("chkMsg: Msg too short, msg was " + self.printByteArray(msg))
+            return inMsg, False
+
+        msgLen = int(outMsg[3])
+        cntLen = len(outMsg[4:-1])
+
+        if (cntLen < msgLen):
+            self.DEBUG.add_message("chkMsg: Length error, msg was " + self.printByteArray(msg))
+            return inMsg, False
+
+        msgChkSm = outMsg[msgLen + 4]
+        chksm = self.calcChkSm(outMsg[:-1])
+        if (chksm != msgChkSm):
+            self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(msg))
+            return inMsg, False
+
+        return outMsg, True
 
 
     # Calculates XOR checksum
@@ -287,6 +301,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 res[str(reg)]= {}
                 res[str(reg)]["Title"] = self.g_register[reg]["Title"]
                 res[str(reg)]["value"] = val
+                #self.DEBUG.set_value(str(reg), str(val))
 
                 if ("out" in self.g_register[reg]):
                     outPin = self.g_register[reg]["out"]
@@ -532,3 +547,103 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 oldReg = self.g_out[outId]
                 self.g_register[oldReg]["out"] = 0
                 self.g_out[outId] = value
+
+
+############################################
+
+
+class TestSequenceFunctions(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def cmpBytearray(self, data1, data2):
+        if len(data1) != len(data2):
+            return False
+    
+        for i in range(len(data1)):
+            if data1[i] != data2[i]:
+                return False
+        
+        return True
+
+    def test_cmpBytearray(self):
+        tst = NibeWP_14107_14107()
+        data1 = tst.shiftBytes(bytearray("\x9c\x44\x56"))
+        data2 = bytearray("\x56\x44\x9c")
+        self.assertTrue(self.cmpBytearray(data1, data2))
+
+    def test_hex2int_bigEndian(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = True
+        val1 = tst.hex2int(bytearray("\x9c\x44\x56"))
+        self.assertEqual(val1, 10241110)
+
+    def test_hex2int_littleEndian(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = False
+        val1 = tst.hex2int(bytearray("\x9c\x44\x56"))
+        self.assertEqual(val1, 5653660)
+
+    def test_complement2(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = False
+        data1 = bytearray("\x76\x85\x81")
+        val1 = tst.complement2(data1)
+        self.assertEqual(val1, -8288906)
+
+    def test_printByteArray(self):
+        tst = NibeWP_14107_14107()
+        data1 = bytearray("\xab\xcd\xef")
+        res = tst.printByteArray(data1)
+        self.assertEqual(res, "0xab 0xcd 0xef")
+
+    def test_getHexValue(self):
+        tst = NibeWP_14107_14107()
+        data1 = tst.getHexValue(156, 'u8')
+        self.assertEqual(data1, "\x00\x9c")
+        data1 = tst.getHexValue(40004, 'u16')
+        self.assertEqual(data1, "\x9c\x44")
+        data1 = tst.getHexValue(2621733731, 'u32')
+        self.assertEqual(data1, "\x9c\x44\x7b\x63")
+
+    def test_parseData_x68(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = False
+        #msg1 = "\x5c\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9f"
+        msg1 = "\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9f"
+        res1 = '{"43427": {"value": 60.0, "Title": "Compressor State EP14"}, "41265": {"value": 0.0, "Title": "Smart Home Mode"}, "40072": {"value": 14.8, "Title": "BF1 EP14 Flow"}, "45001": {"value": 0.0, "Title": "Alarm"}, "47041": {"value": 4.0, "Title": "Hot water comfort mode"}, "42035": {"value": 0.0, "Title": "AA23-BE5 EME20 Total Power"}, "40012": {"value": 31.6, "Title": "EB100-EP14-BT3 Return temp"}, "40016": {"value": 5.6, "Title": "EB100-EP14-BT11 Brine Out Temp"}, "40004": {"value": -5.4, "Title": "BT1 Outdoor Temperature"}, "40014": {"value": 39.9, "Title": "BT6 HW Load"}, "40015": {"value": 10.1, "Title": "EB100-EP14-BT10 Brine In Temp"}, "48043": {"value": 0.0, "Title": "Holiday - Activated"}, "40008": {"value": 42.7, "Title": "BT2 Supply temp S1"}, "42075": {"value": 3276.8, "Title": "AA23-BE5 EME20 Total Energy"}, "40071": {"value": 31.1, "Title": "BT25 Ext. Supply"}}'        
+        
+        datafile = open("export.csv", 'r')
+        tst.parseExport(datafile)
+        ret1 = tst.parseData(bytearray(msg1))
+        self.assertEqual(res1, ret1)
+
+    def test_parseData_x6a(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = False
+        #msg1 = "\x5c\x00\x20\x6a\x06\xab\xbb\x00\x00\x8d\x10\xc1"
+        msg1 = "\x00\x20\x6a\x06\xab\xbb\x00\x00\x8d\x10\xc1"
+        res1 = '{"48043": {"value": 0.0, "Title": "Holiday - Activated"}}'
+
+        datafile = open("export.csv", 'r')
+        tst.parseExport(datafile)
+        ret1 = tst.parseData(bytearray(msg1))
+        self.assertEqual(res1, ret1)
+
+    def test_chkMsg(self):
+        tst = NibeWP_14107_14107()
+        tst.g_bigendian = False
+        msg1 = "\x5c\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9f"
+        msg, ret = tst.chkMsg(msg1)
+        self.assertTrue(ret)
+        msg1 = "\x5c\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9a"
+        msg, ret = tst.chkMsg(bytearray(msg1))
+        self.assertFalse(ret)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+
