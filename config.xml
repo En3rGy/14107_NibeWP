@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <modules>
-        <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="0.1">
+        <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="0.2">
             <inputs>
             	<input type="string" const_name="s_gwip" init_value="">E1 Nibe UDP GW IP</input>
 				<input type="number" const_name="n_gwportget" init_value="9999">Nibe UDP GW get Port</input>
@@ -54,7 +54,8 @@
 				<output type="number" const_name="n_reg17" init_value="0">Wert 17</output>
 				<output type="number" const_name="n_reg18" init_value="0">Wert 18</output>
 				<output type="number" const_name="n_reg19" init_value="0">Wert 19</output>
-				<output type="number" const_name="n_reg20" init_value="0">Wert 20</output>				
+				<output type="number" const_name="n_reg20" init_value="0">Wert 20</output>
+				<output type="number" const_name="n_alive" init_value="0">Alive</output>				
             </outputs>               
 			<remanent_variables>
             </remanent_variables>

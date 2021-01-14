@@ -10,8 +10,7 @@ import threading
 import urllib2
 
 import time
-from __builtin__ import False
-from pickle import FALSE
+
 
 class NibeWP_14107_14107():
     
@@ -137,20 +136,23 @@ class NibeWP_14107_14107():
 
         self.DEBUG.add_message("listen: Start listening for incomming msgs at" 
                                + str(UDP_IP_ADDRESS) + ":" + str(UDP_PORT_NO))
+
         try:
-            
             serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
             data = ""
 
             while True:
-                data = data + serverSock.recv(1024)
-                msg, ret = self.chkMsg(data)
-                if ret:
-                    self.parseData(msg)
-                    data = ""
-        except Exception as e:
-            self.DEBUG.add_message("ERROR listen: " + str(e))
+                    data = data + serverSock.recv(1024)
+                    msg, ret = self.chkMsg(data)
+                    if (ret == True):
+                        self.parseData(msg)
+                        data = ""
+                    else:
+                        if (msg == None):
+                            data = ""
 
+        except Exception as e:
+            self.DEBUG.add_message("ERROR listen: " + str(e) + " (abort)")
         finally:
             serverSock.close()
 
@@ -190,34 +192,46 @@ class NibeWP_14107_14107():
 
 
     # Checks the integrity of a received message
+    # Example:
+    # 5c 00 20 6d 0e 01 24 18 46 31 31 34 35 2d 31 30 20 44 45 34
+    #                |---------- Bytes vor len count --------| 
+    #    |------------ Bytes for checksum calculation -------|
     def chkMsg(self, msg):
-        #print("Running chkMsg")
-        inMsg = bytearray(msg)
-        outMsg = []
+        try:
+            #print("Running chkMsg")
+            inMsg = bytearray(msg)
+            outMsg = []
 
-        for i in range(len(inMsg)):
-            if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
-                outMsg = inMsg[i+1:]
-                break
+            # check for start byte
+            for i in range(len(inMsg)):
+                if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
+                    outMsg = inMsg[i+1:]
+                    break
 
-        if(len(outMsg) < 4):
-            self.DEBUG.add_message("chkMsg: Msg too short, msg was " + self.printByteArray(msg))
-            return inMsg, False
+            # check if msg is complete
+            if(len(outMsg) < 4):
+                return outMsg, False
 
-        msgLen = int(outMsg[3])
-        cntLen = len(outMsg[4:-1])
+            msgLen = int(outMsg[3])
+            cntLen = len(outMsg[4:-1])
 
-        if (cntLen < msgLen):
-            self.DEBUG.add_message("chkMsg: Length error, msg was " + self.printByteArray(msg))
-            return inMsg, False
+            if (cntLen < msgLen):
+                return outMsg, False
 
-        msgChkSm = outMsg[msgLen + 4]
-        chksm = self.calcChkSm(outMsg[:-1])
-        if (chksm != msgChkSm):
-            self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(msg))
-            return inMsg, False
+            outMsg = outMsg[:4 + msgLen + 1]
 
-        return outMsg, True
+            # check checksum
+            msgChkSm = outMsg[msgLen + 4]
+            chksm = self.calcChkSm(outMsg[:-1])
+            if (chksm != msgChkSm):
+                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(inMsg))
+                self.DEBUG.set_value("Last failed msg", self.printByteArray(inMsg))
+                return None, False
+
+            return outMsg, True
+
+        except Exception as e:
+            self.DEBUG.add_message("ERROR chkMsg: " + str(e))
 
 
     # Calculates XOR checksum
@@ -631,15 +645,6 @@ class TestSequenceFunctions(unittest.TestCase):
         ret1 = tst.parseData(bytearray(msg1))
         self.assertEqual(res1, ret1)
 
-    def test_chkMsg(self):
-        tst = NibeWP_14107_14107()
-        tst.g_bigendian = False
-        msg1 = "\x5c\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9f"
-        msg, ret = tst.chkMsg(msg1)
-        self.assertTrue(ret)
-        msg1 = "\x5c\x00\x20\x68\x50\x44\x9c\xca\xff\x48\x9c\xab\x01\x4c\x9c\x3c\x01\x4e\x9c\x8f\x01\x87\x9c\x37\x01\x4f\x9c\x65\x00\x50\x9c\x38\x00\x88\x9c\x94\x00\xc9\xaf\x00\x00\x5b\xa4\x00\x80\xff\xff\x00\x00\x33\xa4\x00\x00\xff\xff\x00\x00\xa3\xa9\x3c\x00\xab\xbb\x00\x00\xc1\xb7\x04\x00\x31\xa1\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\xff\xff\x00\x00\x9a"
-        msg, ret = tst.chkMsg(bytearray(msg1))
-        self.assertFalse(ret)
 
 
 if __name__ == '__main__':

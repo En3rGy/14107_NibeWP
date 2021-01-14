@@ -88,6 +88,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         self.PIN_O_N_REG18=22
         self.PIN_O_N_REG19=23
         self.PIN_O_N_REG20=24
+        self.PIN_O_N_ALIVE=25
         self.FRAMEWORK._run_in_context_thread(self.on_init)
 
 ########################################################################################################
@@ -120,20 +121,23 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
         self.DEBUG.add_message("listen: Start listening for incomming msgs at" 
                                + str(UDP_IP_ADDRESS) + ":" + str(UDP_PORT_NO))
+
         try:
-            
             serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
             data = ""
 
             while True:
-                data = data + serverSock.recv(1024)
-                msg, ret = self.chkMsg(data)
-                if ret:
-                    self.parseData(msg)
-                    data = ""
-        except Exception as e:
-            self.DEBUG.add_message("ERROR listen: " + str(e))
+                    data = data + serverSock.recv(1024)
+                    msg, ret = self.chkMsg(data)
+                    if (ret == True):
+                        self.parseData(msg)
+                        data = ""
+                    else:
+                        if (msg == None):
+                            data = ""
 
+        except Exception as e:
+            self.DEBUG.add_message("ERROR listen: " + str(e) + " (abort)")
         finally:
             serverSock.close()
 
@@ -173,35 +177,44 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
 
     # Checks the integrity of a received message
+    # Example:
+    # 5c 00 20 6d 0e 01 24 18 46 31 31 34 35 2d 31 30 20 44 45 34
+    #                |---------- Bytes vor len count --------| 
+    #    |------------ Bytes for checksum calculation -------|
     def chkMsg(self, msg):
         try:
             #print("Running chkMsg")
             inMsg = bytearray(msg)
             outMsg = []
-    
+
+            # check for start byte
             for i in range(len(inMsg)):
                 if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
                     outMsg = inMsg[i+1:]
                     break
-    
+
+            # check if msg is complete
             if(len(outMsg) < 4):
-                self.DEBUG.add_message("chkMsg: Msg too short, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
+                return outMsg, False
+
             msgLen = int(outMsg[3])
             cntLen = len(outMsg[4:-1])
-    
+
             if (cntLen < msgLen):
-                self.DEBUG.add_message("chkMsg: Length error, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
+                return outMsg, False
+
+            outMsg = outMsg[:4 + msgLen + 1]
+
+            # check checksum
             msgChkSm = outMsg[msgLen + 4]
             chksm = self.calcChkSm(outMsg[:-1])
             if (chksm != msgChkSm):
-                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(msg))
-                return inMsg, False
-    
+                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(inMsg))
+                self.DEBUG.set_value("Last failed msg", self.printByteArray(inMsg))
+                return None, False
+
             return outMsg, True
+
         except Exception as e:
             self.DEBUG.add_message("ERROR chkMsg: " + str(e))
 
@@ -287,6 +300,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 res[str(reg)]= {}
                 res[str(reg)]["Title"] = self.g_register[reg]["Title"]
                 res[str(reg)]["value"] = val
+                #self.DEBUG.set_value(str(reg), str(val))
 
                 if ("out" in self.g_register[reg]):
                     outPin = self.g_register[reg]["out"]
