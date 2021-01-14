@@ -315,12 +315,19 @@ class NibeWP_14107_14107():
                 res[str(reg)]= {}
                 res[str(reg)]["Title"] = self.g_register[reg]["Title"]
                 res[str(reg)]["value"] = val
-                #self.DEBUG.set_value(str(reg), str(val))
 
                 if ("out" in self.g_register[reg]):
                     outPin = self.g_register[reg]["out"]
+
                     if (outPin != 0):
-                        self._set_output_value(outPin, val)
+                        if("Value" in g_register[reg]):
+                            pass
+                        else:
+                            g_register[reg]["Value"] = val
+
+                        if (g_register[reg]["Value"] != val):
+                            self._set_output_value(outPin, val)
+                            g_register[reg]["Value"] = val
 
             return True, res
 
@@ -561,6 +568,7 @@ class NibeWP_14107_14107():
                 oldReg = self.g_out[outId]
                 self.g_register[oldReg]["out"] = 0
                 self.g_out[outId] = value
+
 
 
 ############################################
