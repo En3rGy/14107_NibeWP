@@ -98,6 +98,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
     g_msg = 0
     g_register = {}
     g_out = {}
+    g_out_sbc = {}
 
     g_bigendian = False
 
@@ -305,20 +306,25 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     outPin = self.g_register[reg]["out"]
 
                     if (outPin != 0):
-                        if("Value" in g_register[reg]):
-                            pass
-                        else:
-                            g_register[reg]["Value"] = val
-
-                        if (g_register[reg]["Value"] != val):
-                            self._set_output_value(outPin, val)
-                            g_register[reg]["Value"] = val
+                        self.set_output_value_sbc(outPin, val)
 
             return True, res
 
         except Exception as e:
             self.DEBUG.add_message("ERROR parseRegister: " + str(e))
             return False, None
+
+
+    def set_output_value_sbc(self, pin, val):
+        if (pin in self.g_out_sbc):
+            pass
+        else:
+            self.g_out_sbc[pin] = val
+        
+        if (self.g_out_sbc[pin] != val):
+            self._set_output_value(pin, val)
+
+        self.g_out_sbc[pin] = val
 
 
     def parseData(self, msg):
@@ -349,6 +355,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     return None
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
+                self._set_output_value(self.PIN_O_N_ALIVE, 1)
                 return jsn
     
             # response for single register request
@@ -462,6 +469,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             msg = msg + chr(chksm)
 
             port = int(self._get_input_value(self.PIN_I_N_GWPORTSET))
+            self.DEBUG.self.DEBUG.add_message("sendData: Sending write register")
             self.sendData(port, msg)
         except Exception as e:
             self.DEBUG.add_message("ERROR writeRegister: " + str(e))
