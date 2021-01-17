@@ -210,7 +210,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             msgChkSm = outMsg[msgLen + 4]
             chksm = self.calcChkSm(outMsg[:-1])
             if (chksm != msgChkSm):
-                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.printByteArray(inMsg))
+                self.DEBUG.add_message("chkMsg: Checksum error")
                 self.DEBUG.set_value("Last failed msg", self.printByteArray(inMsg))
                 return None, False
 
@@ -469,7 +469,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             msg = msg + chr(chksm)
 
             port = int(self._get_input_value(self.PIN_I_N_GWPORTSET))
-            self.DEBUG.self.DEBUG.add_message("sendData: Sending write register")
+            self.DEBUG.add_message("sendData: Sending write register")
             self.sendData(port, msg)
         except Exception as e:
             self.DEBUG.add_message("ERROR writeRegister: " + str(e))
@@ -544,9 +544,17 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     def on_input_value(self, index, value):
         if (index == self.PIN_I_S_CMDGET):
+            if(value not in self.g_register):
+                self.DEBUG.add_message("Register for 'get' not known" )
+                return
+
             self.readRegister(value)
 
         elif (index == self.PIN_I_S_CMDSET):
+            if (value == "") or (":" not in value):
+                self.DEBUG.add_message("Cmd value empty or missing ':'")
+                return
+
             val = value.split(':')
             register = int(val[0])
             val = float(val[1])
