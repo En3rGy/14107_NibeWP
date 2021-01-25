@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <modules>
-        <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="0.2">
+        <module category="Datenaustausch" context="14107_NibeWP" id="14107" name="NibeWP (14107)" version="1.0">
             <inputs>
             	<input type="string" const_name="s_gwip" init_value="">E1 Nibe UDP GW IP</input>
 				<input type="number" const_name="n_gwportget" init_value="9999">Nibe UDP GW get Port</input>
