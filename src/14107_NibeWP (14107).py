@@ -102,25 +102,24 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
     g_bigendian = False
 
-    # Re-ordering / inversing the byte order
+    # Re-ordering / inverting the byte order
     def shiftBytes(self, msg):
         res = []
         for x in msg[::-1]:
             res.append(x)
         return res
 
-
-    # Main server loop, listening for incomming messages
+    # Main server loop, listening for incoming messages
     def listen(self):
-        ## declare our serverSocket upon which
-        ## we will be listening for UDP messages
+        # declare our serverSocket upon which
+        # we will be listening for UDP messages
         serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        ## One difference is that we will have to bind our declared IP address
-        ## and port number to our newly declared serverSock
+        # One difference is that we will have to bind our declared IP address
+        # and port number to our newly declared serverSock
         UDP_IP_ADDRESS = self.FRAMEWORK.get_homeserver_private_ip()
         UDP_PORT_NO = self._get_input_value(self.PIN_I_N_HSPORT)
 
-        self.DEBUG.add_message("listen: Start listening for incomming msgs at" 
+        self.DEBUG.add_message("listen: Start listening for incomming msgs at"
                                + str(UDP_IP_ADDRESS) + ":" + str(UDP_PORT_NO))
 
         try:
@@ -128,22 +127,21 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             data = ""
 
             while True:
-                    data = data + serverSock.recv(1024)
-                    msg, ret = self.chkMsg(data)
-                    if (ret == True):
-                        self.parseData(msg)
+                data = data + serverSock.recv(1024)
+                msg, ret = self.chkMsg(data)
+                if ret:
+                    self.parseData(msg)
+                    data = ""
+                else:
+                    if msg is None:
                         data = ""
-                    else:
-                        if (msg == None):
-                            data = ""
 
         except Exception as e:
             self.DEBUG.add_message("ERROR listen: " + str(e) + " (abort)")
         finally:
             serverSock.close()
 
-
-    # Reads the Modbus Manager export file which is provided to the HS, 
+    # Reads the Modbus Manager export file which is provided to the HS,
     # see HS help for "hsupload"
     def readExport(self):
         try:
@@ -153,29 +151,28 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         except Exception as e:
             self.DEBUG.add_message("ERROR readExport: " + str(e))
 
-
     # Parses the Modbus Manager export file and stores the content to self.g_register
     def parseExport(self, datafile):
-        #print("Running parseExport")
+        # print("Running parseExport")
         self.g_register = {}
         i = 0
 
         for row in datafile:
             row = row.replace('"', '')
             data = row.split(';')
-            if (len(data) < 10):
+            if len(data) < 10:
                 continue
 
             # Title;Info;ID;Unit;Size;Factor;Min;Max;Default;Mode
             # 0     1    2  3    4    5      6   7   8       9
             try:
-                self.g_register[int(data[2])] = {"Title": data[0], "Size": data[4], "Factor": float(data[5]), "Mode": data[9]}
+                self.g_register[int(data[2])] = {"Title": data[0], "Size": data[4], "Factor": float(data[5]),
+                                                 "Mode": data[9]}
                 i = i + 1
             except Exception as e:
                 self.DEBUG.add_message("parseExport: " + str(e) + " with '" + str(data) + "'")
 
         self.DEBUG.add_message("parseExport: Read Modbus Manager file with " + str(i) + " entries.")
-
 
     # Checks the integrity of a received message
     # Example:
@@ -184,24 +181,24 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
     #    |------------ Bytes for checksum calculation -------|
     def chkMsg(self, msg):
         try:
-            #print("Running chkMsg")
+            # print("Running chkMsg")
             inMsg = bytearray(msg)
             outMsg = []
 
             # check for start byte
             for i in range(len(inMsg)):
                 if (inMsg[i] == 0x5c) and (i < len(inMsg) - 1):
-                    outMsg = inMsg[i+1:]
+                    outMsg = inMsg[i + 1:]
                     break
 
             # check if msg is complete
-            if(len(outMsg) < 4):
+            if len(outMsg) < 4:
                 return outMsg, False
 
             msgLen = int(outMsg[3])
             cntLen = len(outMsg[4:-1])
 
-            if (cntLen < msgLen):
+            if cntLen < msgLen:
                 return outMsg, False
 
             outMsg = outMsg[:4 + msgLen + 1]
@@ -209,7 +206,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             # check checksum
             msgChkSm = outMsg[msgLen + 4]
             chksm = self.calcChkSm(outMsg[:-1])
-            if (chksm != msgChkSm):
+            if chksm != msgChkSm:
                 self.DEBUG.add_message("chkMsg: Checksum error")
                 self.DEBUG.set_value("Last failed msg", self.printByteArray(inMsg))
                 return None, False
@@ -219,16 +216,15 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         except Exception as e:
             self.DEBUG.add_message("ERROR chkMsg: " + str(e))
 
-
     # Calculates XOR checksum
     def calcChkSm(self, msg):
         chkSm = 0x00
-        for x in (msg):
+        for x in msg:
             chkSm = chkSm ^ x
         return chkSm
 
-    # Parses the data block of an incomming message
-    def parseRegister(self, data, cmd6a = False):
+    # Parses the data block of an incoming message
+    def parseRegister(self, data, cmd6a=False):
         try:
             reg = 0
             res = {}
@@ -237,75 +233,75 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
                 # register
                 reg = self.hex2int(data[i: i + 2])
-                #self.DEBUG.add_message("Register received: " + str(self.printByteArray(data[i: i + 2]) + " ~ " + str(reg)))
+                # self.DEBUG.add_message("Register received: " + str(self.printByteArray(data[i: i + 2]) + " ~ " + str(reg)))
 
                 # reg = 0xffff -> skip and following data
-                if (reg == 65535 or reg == 0):
-                    #print("- Next register 0xffff or 0x0, skipping 4 byte")
+                if reg == 65535 or reg == 0:
+                    # print("- Next register 0xffff or 0x0, skipping 4 byte")
                     i = i + 4
                     continue
-    
+
                 i = i + 2
-    
+
                 if reg not in self.g_register:
                     self.DEBUG.add_message("Register " + str(reg) + " not known. Abort parse.")
                     return False, res
-    
+
                 # value
                 size = self.g_register[reg]["Size"]
-                if(cmd6a == True):
+                if cmd6a:
                     size = size[0] + "32"
 
                 factor = self.g_register[reg]["Factor"]
 
                 if (size == "s8") or (size == "u8"):
-                    if (data[i+1] & 0x80 == 0x80) and (size == "s8"):
+                    if (data[i + 1] & 0x80 == 0x80) and (size == "s8"):
                         val = self.complement2(data[i:i + 2]) / factor
                     else:
                         val = self.hex2int(data[i:i + 2]) / factor
                     i = i + 2
 
                 elif (size == "s16") or (size == "u16"):
-                    if (data[i+1] & 0x80 == 0x80) and (size == "s16"):
+                    if (data[i + 1] & 0x80 == 0x80) and (size == "s16"):
                         val = self.complement2(data[i:i + 2]) / factor
                     else:
                         val = self.hex2int(data[i:i + 2]) / factor
                     i = i + 2
-    
+
                 elif (size == "s32") or (size == "u32"):
-                    #check next register
+                    # check next register
                     reg_next = self.hex2int(data[i + 2:i + 4])
-    
-                    if (reg_next - reg == 1):
-                        #print("- next register is split register")
+
+                    if reg_next - reg == 1:
+                        # print("- next register is split register")
                         # x32 uses next register for full value
                         val1 = data[i:i + 2]
                         i = i + 4
-    
+
                         val2 = data[i:i + 2]
                         data32 = val1.append(val2)
-    
+
                         val = self.hex2int(data32) / factor
-                        #print("- Value: " + str(val))
+                        # print("- Value: " + str(val))
                         i = i + 2
                     else:
-                        #print("- next register is 0xffff, skip")
+                        # print("- next register is 0xffff, skip")
                         val = self.hex2int(data[i:i + 2]) / factor
-                        #print("- Value: " + str(val))
+                        # print("- Value: " + str(val))
                         i = i + 6
-    
+
                 else:
                     self.DEBUG.add_message("ERROR parseRegister: size of value unknown.")
-    
+
                 # write value
-                res[str(reg)]= {}
+                res[str(reg)] = {}
                 res[str(reg)]["Title"] = self.g_register[reg]["Title"]
                 res[str(reg)]["value"] = val
 
-                if ("out" in self.g_register[reg]):
+                if "out" in self.g_register[reg]:
                     outPin = self.g_register[reg]["out"]
 
-                    if (outPin != 0):
+                    if outPin != 0:
                         self.set_output_value_sbc(outPin, val)
 
             return True, res
@@ -314,30 +310,28 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             self.DEBUG.add_message("ERROR parseRegister: " + str(e))
             return False, None
 
-
     def set_output_value_sbc(self, pin, val):
-        if (pin in self.g_out_sbc):
+        if pin in self.g_out_sbc:
             pass
         else:
             self.g_out_sbc[pin] = val
-        
-        if (self.g_out_sbc[pin] != val):
+
+        if self.g_out_sbc[pin] != val:
             self._set_output_value(pin, val)
 
         self.g_out_sbc[pin] = val
 
-
     def parseData(self, msg):
         try:
-            #sender = msg[0]
-            #addr = msg[1]
+            # sender = msg[0]
+            # addr = msg[1]
             cmd = msg[2]
-            #length = msg[3]
+            # length = msg[3]
             data = msg[4:-2]
-            #crc = msg[-1]
-            
-            self.DEBUG.set_value("last raw msg " + str(hex(cmd)), 
-                           str(hex(0x5c)) + " " + self.printByteArray(msg))
+            # crc = msg[-1]
+
+            self.DEBUG.set_value("last raw msg " + str(hex(cmd)),
+                                 str(hex(0x5c)) + " " + self.printByteArray(msg))
 
             # remove escaping of startbyte 0x5c
             i = 0
@@ -348,36 +342,36 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 i = i + 1
 
             # 20 value register msg
-            if (cmd == 0x68):
+            if cmd == 0x68:
                 ok, ret = self.parseRegister(data)
-                if (ok == False):
+                if not ok:
                     self.DEBUG.add_message("Error reading msg " + str(hex(0x5c)) + " " + self.printByteArray(msg))
                     return None
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
                 self._set_output_value(self.PIN_O_N_ALIVE, 1)
                 return jsn
-    
+
             # response for single register request
-            elif(cmd == 0x6a):
+            elif cmd == 0x6a:
                 # @todo value always 32bit!
                 ok, ret = self.parseRegister(data, True)
-                if (ok == False):
+                if not ok:
                     self.DEBUG.add_message("Error reading msg " + str(hex(0x5c)) + " " + self.printByteArray(msg))
                     return None
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
                 return jsn
-    
+
             # ignore, seems to be a confirmation of an executed command
             # 5c00206c01014c
-            elif (cmd == 0x6c): # and $msg eq "5c00206c01014c") {
+            elif cmd == 0x6c:  # and $msg eq "5c00206c01014c") {
                 pass
-            #print("- Msg 0x6c not implemented")
+            # print("- Msg 0x6c not implemented")
 
             # readingsBulkUpdate
-            elif (cmd == 0x6d): #and substr($msg, 10, 2*$length) =~ m/(.{2})(.{4})(.*)/) {
-                #ver = self.hex2int(data[0:3])
+            elif cmd == 0x6d:  # and substr($msg, 10, 2*$length) =~ m/(.{2})(.{4})(.*)/) {
+                # ver = self.hex2int(data[0:3])
                 ver = self.hex2int(data[1:3])
                 prod = data[3:]
                 self._set_output_value(self.PIN_O_N_VER, ver)
@@ -385,32 +379,44 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 return str(str(prod) + " / " + str(ver))
 
             # 0x5c 0x0 0x20 0xee 0x0 0xce
-            elif (cmd == 0xee):
+            elif cmd == 0xee:
                 pass
-                #print("- Msg 0xee not implemented")
+                # print("- Msg 0xee not implemented")
 
             else:
                 pass
-                #print("- unknown msg")
+                # print("- unknown msg")
 
         except Exception as e:
             self.DEBUG.add_message("ERROR parseData: " + str(e) + " with msg " + self.printByteArray(msg))
 
-
+    # @brief
+    # @param value Value as number
+    # @param size u8, u16 or u32
+    # @return value as string with hex values
     def getHexValue(self, value, size):
-        if (size=="s8" or size=="u8"):
+        val = ""
+
+        if size == "s8" or size == "u8":
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val2) + chr(val1)
 
-        elif (size=="s16" or size=="u16"):
+            if self.g_bigendian:
+                val = chr(val2) + chr(val1)
+            else:
+                val = chr(val1) + chr(val2)
+
+        elif size == "s16" or size == "u16":
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val2) + chr(val1)
+            if self.g_bigendian:
+                val = chr(val2) + chr(val1)
+            else:
+                val = chr(val1) + chr(val2)
 
-        elif (size=="s32" or size=="u32"):
+        elif size == "s32" or size == "u32":
             val1 = value & 0x000000FF
             val2 = value & 0x0000FF00
             val3 = value & 0x00FF0000
@@ -419,7 +425,10 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             val3 = val3 >> 16
             val4 = val4 >> 24
 
-            val = chr(val4) + chr(val3) + chr(val2) + chr(val1)
+            if self.g_bigendian:
+                val = chr(val4) + chr(val3) + chr(val2) + chr(val1)
+            else:
+                val = chr(val1) + chr(val2) + chr(val3) + chr(val4)
 
         return val
 
@@ -428,13 +437,13 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
         # connect the socket, think of it as connecting the cable to the address location
         s.connect((ipaddr, port))
-        self.DEBUG.set_value("last send", "Sending " + self.printByteArray(bytearray(data)) + "to " + ipaddr + ":" + str(port))
+        self.DEBUG.set_value("last send",
+                             "Sending " + self.printByteArray(bytearray(data)) + "to " + ipaddr + ":" + str(port))
         s.send(data)
         s.close()
 
-
     def readRegister(self, register):
-        try:    
+        try:
             msg = "\xc0\x69\x02"
             reg = self.getHexValue(register, "u8")
             msg = msg + reg
@@ -445,7 +454,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             self.sendData(port, msg)
         except Exception as e:
             self.DEBUG.add_message("ERROR readRegister: " + str(e))
-
 
     def writeRegister(self, register, value):
         try:
@@ -458,10 +466,10 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             if ("W" not in mode) and ("w" not in mode):
                 self.DEBUG.add_message("writeRegister: Register " + str(register) + " is read only. Aborting send.")
                 return
-    
+
             factor = self.g_register[register]["Factor"]
             value = int(value * factor)
-            #size = self.g_register[register]["Size"]
+            # size = self.g_register[register]["Size"]
             value = self.getHexValue(value, "u32")
             msg = msg + value
 
@@ -474,7 +482,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         except Exception as e:
             self.DEBUG.add_message("ERROR writeRegister: " + str(e))
 
-
     def printByteArray(self, data):
         s = ""
         for i in range(len(data)):
@@ -482,9 +489,8 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         s = s[1:]
         return s
 
-
     def hex2int(self, msg):
-        if (self.g_bigendian == False):
+        if self.g_bigendian == False:
             msg = self.shiftBytes(msg)
 
         val = 0
@@ -495,7 +501,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
 
         return int(val)
 
-
     # data shall not yet be re-ordered (use orig byte order)
     def complement2(self, data):
         for i in range(len(data)):
@@ -505,7 +510,6 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
         val = val + 1
         return -val
 
-
     def testEndian(self):
         data = bytearray("\x80\x00")
         val = 0
@@ -514,11 +518,10 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             val = val << 8
             val = val | byte
 
-        self.DEBUG.add_message(self.printByteArray(data) + " -> " + str(val) + 
-                             "(32768 little endian, 8 big endian)")
+        self.DEBUG.add_message(self.printByteArray(data) + " -> " + str(val) +
+                               "(32768 little endian, 8 big endian)")
 
-
-    def initExportCsv(self):
+    def init_export_csv(self):
         self.readExport()
 
         for i in range(self.PIN_I_S_REG20 - self.PIN_I_S_REG01):
@@ -529,23 +532,21 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             if (reg in self.g_register):
                 self.g_register[reg]["out"] = outId
             else:
-                self.DEBUG.add_message("initExportCsv: Register " + str(reg) + " at EW" + 
-                                       str(self.PIN_I_S_REG01 + i) + 
-                                       " not defined in Mobus Manager Export." )
-
+                self.DEBUG.add_message("initExportCsv: Register " + str(reg) + " at EW" +
+                                       str(self.PIN_I_S_REG01 + i) +
+                                       " not defined in Mobus Manager Export.")
 
     def on_init(self):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
         self.testEndian()
-        self.initExportCsv()
+        self.init_export_csv()
         x = threading.Thread(target=self.listen)
         x.start()
 
-
     def on_input_value(self, index, value):
         if (index == self.PIN_I_S_CMDGET):
-            if(value not in self.g_register):
-                self.DEBUG.add_message("Register for 'get' not known" )
+            if (value not in self.g_register):
+                self.DEBUG.add_message("Register for 'get' not known")
                 return
 
             self.readRegister(value)
