@@ -1,0 +1,5 @@
+.txt
+.csv
+test_NibeWP.py
+.project
+.pydevproject

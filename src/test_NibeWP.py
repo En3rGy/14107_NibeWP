@@ -384,6 +384,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     return None
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
+                self._set_output_value(self.PIN_O_N_ALIVE, 1)
                 return jsn
 
             # response for single register request
