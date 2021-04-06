@@ -55,6 +55,9 @@ Der Baustein dient zur Kommunikation mit einer Nibe Wärmepumpe. Der Baustein nu
 
 ### Change Log
 
+- v1.2
+	- Impr.: Improved logging
+	- Impr.: Update to hsl 20.4
 - v1.1
     - Fix: 1st value received not provided at output
 - v1.0

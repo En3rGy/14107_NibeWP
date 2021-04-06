@@ -10,7 +10,7 @@ import urllib2
 import time
 
 
-class hsl20_3:
+class hsl20_4:
     LOGGING_NONE = 0
 
     def __init__(self):
@@ -25,7 +25,7 @@ class hsl20_3:
             pass
 
         def _get_framework(self):
-            f = hsl20_3.Framework()
+            f = hsl20_4.Framework()
             return f
 
         def _get_logger(self, a, b):
@@ -55,7 +55,7 @@ class hsl20_3:
             pass
 
         def create_debug_section(self):
-            d = hsl20_3.DebugHelper()
+            d = hsl20_4.DebugHelper()
             return d
 
         def get_homeserver_private_ip(self):
@@ -73,65 +73,63 @@ class hsl20_3:
 
     ############################################
 
-
-class NibeWP_14107_14107(hsl20_3.BaseModule):
+class NibeWP_14107_14107(hsl20_4.BaseModule):
 
     def __init__(self, homeserver_context):
-        hsl20_3.BaseModule.__init__(self, homeserver_context, "14107_NibeWP")
+        hsl20_4.BaseModule.__init__(self, homeserver_context, "14107_NibeWP")
         self.FRAMEWORK = self._get_framework()
-        self.LOGGER = self._get_logger(hsl20_3.LOGGING_NONE, ())
-        self.PIN_I_S_GWIP = 1
-        self.PIN_I_N_GWPORTGET = 2
-        self.PIN_I_N_GWPORTSET = 3
-        self.PIN_I_N_HSPORT = 4
-        self.PIN_I_S_CMDSET = 5
-        self.PIN_I_S_CMDGET = 6
-        self.PIN_I_S_REG01 = 7
-        self.PIN_I_S_REG02 = 8
-        self.PIN_I_S_REG03 = 9
-        self.PIN_I_S_REG04 = 10
-        self.PIN_I_S_REG05 = 11
-        self.PIN_I_S_REG06 = 12
-        self.PIN_I_S_REG07 = 13
-        self.PIN_I_S_REG08 = 14
-        self.PIN_I_S_REG09 = 15
-        self.PIN_I_S_REG10 = 16
-        self.PIN_I_S_REG11 = 17
-        self.PIN_I_S_REG12 = 18
-        self.PIN_I_S_REG13 = 19
-        self.PIN_I_S_REG14 = 20
-        self.PIN_I_S_REG15 = 21
-        self.PIN_I_S_REG16 = 22
-        self.PIN_I_S_REG17 = 23
-        self.PIN_I_S_REG18 = 24
-        self.PIN_I_S_REG19 = 25
-        self.PIN_I_S_REG20 = 26
-        self.PIN_O_S_VALUES = 1
-        self.PIN_O_S_MODEL = 2
-        self.PIN_O_N_VER = 3
-        self.PIN_O_N_GETREG = 4
-        self.PIN_O_N_REG01 = 5
-        self.PIN_O_N_REG02 = 6
-        self.PIN_O_N_REG03 = 7
-        self.PIN_O_N_REG04 = 8
-        self.PIN_O_N_REG05 = 9
-        self.PIN_O_N_REG06 = 10
-        self.PIN_O_N_REG07 = 11
-        self.PIN_O_N_REG08 = 12
-        self.PIN_O_N_REG09 = 13
-        self.PIN_O_N_REG10 = 14
-        self.PIN_O_N_REG11 = 15
-        self.PIN_O_N_REG12 = 16
-        self.PIN_O_N_REG13 = 17
-        self.PIN_O_N_REG14 = 18
-        self.PIN_O_N_REG15 = 19
-        self.PIN_O_N_REG16 = 20
-        self.PIN_O_N_REG17 = 21
-        self.PIN_O_N_REG18 = 22
-        self.PIN_O_N_REG19 = 23
-        self.PIN_O_N_REG20 = 24
-        self.PIN_O_N_ALIVE = 25
-        self.FRAMEWORK._run_in_context_thread(self.on_init)
+        self.LOGGER = self._get_logger(hsl20_4.LOGGING_NONE,())
+        self.PIN_I_S_GWIP=1
+        self.PIN_I_N_GWPORTGET=2
+        self.PIN_I_N_GWPORTSET=3
+        self.PIN_I_N_HSPORT=4
+        self.PIN_I_S_CMDSET=5
+        self.PIN_I_S_CMDGET=6
+        self.PIN_I_S_REG01=7
+        self.PIN_I_S_REG02=8
+        self.PIN_I_S_REG03=9
+        self.PIN_I_S_REG04=10
+        self.PIN_I_S_REG05=11
+        self.PIN_I_S_REG06=12
+        self.PIN_I_S_REG07=13
+        self.PIN_I_S_REG08=14
+        self.PIN_I_S_REG09=15
+        self.PIN_I_S_REG10=16
+        self.PIN_I_S_REG11=17
+        self.PIN_I_S_REG12=18
+        self.PIN_I_S_REG13=19
+        self.PIN_I_S_REG14=20
+        self.PIN_I_S_REG15=21
+        self.PIN_I_S_REG16=22
+        self.PIN_I_S_REG17=23
+        self.PIN_I_S_REG18=24
+        self.PIN_I_S_REG19=25
+        self.PIN_I_S_REG20=26
+        self.PIN_O_S_VALUES=1
+        self.PIN_O_S_MODEL=2
+        self.PIN_O_N_VER=3
+        self.PIN_O_N_GETREG=4
+        self.PIN_O_N_REG01=5
+        self.PIN_O_N_REG02=6
+        self.PIN_O_N_REG03=7
+        self.PIN_O_N_REG04=8
+        self.PIN_O_N_REG05=9
+        self.PIN_O_N_REG06=10
+        self.PIN_O_N_REG07=11
+        self.PIN_O_N_REG08=12
+        self.PIN_O_N_REG09=13
+        self.PIN_O_N_REG10=14
+        self.PIN_O_N_REG11=15
+        self.PIN_O_N_REG12=16
+        self.PIN_O_N_REG13=17
+        self.PIN_O_N_REG14=18
+        self.PIN_O_N_REG15=19
+        self.PIN_O_N_REG16=20
+        self.PIN_O_N_REG17=21
+        self.PIN_O_N_REG18=22
+        self.PIN_O_N_REG19=23
+        self.PIN_O_N_REG20=24
+        self.PIN_O_N_ALIVE=25
 
     ############################################
 
@@ -247,7 +245,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
             msg_chk_sm = out_msg[msg_len + 4]
             chksm = self.calc_chk_sm(out_msg[:-1])
             if chksm != msg_chk_sm:
-                self.DEBUG.add_message("chkMsg: Checksum error, msg was " + self.print_byte_array(in_msg))
+                self.DEBUG.add_message("chkMsg: Checksum error")
                 self.DEBUG.set_value("Last failed msg", self.print_byte_array(in_msg))
                 return None, False
 
@@ -385,6 +383,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
                 self._set_output_value(self.PIN_O_N_ALIVE, 1)
+                self.DEBUG.add_message("parse_data: Received 0x68 Nibe data")
                 return jsn
 
             # response for single register request
@@ -396,6 +395,7 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                     return None
                 jsn = str(ret).replace("'", '"')  # exchange ' by "
                 self._set_output_value(self.PIN_O_S_VALUES, jsn)
+                self.DEBUG.add_message("parse_data: Received 0x6a Nibe data")
                 return jsn
 
             # ignore, seems to be a confirmation of an executed command
@@ -411,19 +411,19 @@ class NibeWP_14107_14107(hsl20_3.BaseModule):
                 prod = data[3:]
                 self._set_output_value(self.PIN_O_N_VER, ver)
                 self._set_output_value(self.PIN_O_S_MODEL, prod)
+                self.DEBUG.add_message("parse_data: Received 0x6d Nibe data")
                 return str(str(prod) + " / " + str(ver))
 
             # 0x5c 0x0 0x20 0xee 0x0 0xce
             elif cmd == 0xee:
-                pass
-                # print("- Msg 0xee not implemented")
+                self.DEBUG.add_message("parse_data: Received 0xee Nibe data")
 
             else:
                 pass
-                # print("- unknown msg")
+                self.DEBUG.add_message("parse_data: Received unknown Nibe data")
 
         except Exception as e:
-            self.DEBUG.add_message("ERROR parseData: " + str(e) + " with msg " + self.print_byte_array(msg))
+            self.DEBUG.add_message("ERROR parse_data: " + str(e) + " with msg " + self.print_byte_array(msg))
 
     def get_hex_value(self, value, size):
         if size == "s8" or size == "u8":
