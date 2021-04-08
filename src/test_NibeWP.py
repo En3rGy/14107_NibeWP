@@ -425,18 +425,20 @@ class NibeWP_14107_14107(hsl20_4.BaseModule):
         except Exception as e:
             self.DEBUG.add_message("ERROR parse_data: " + str(e) + " with msg " + self.print_byte_array(msg))
 
-    def get_hex_value(self, value, size):
+    def int2hex(self, value, size):
         if size == "s8" or size == "u8":
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val2) + chr(val1)
+
+            val = chr(val1) + chr(val2)
 
         elif size == "s16" or size == "u16":
             val1 = value & 0x00FF
             val2 = value & 0xFF00
             val2 = val2 >> 8
-            val = chr(val2) + chr(val1)
+
+            val = chr(val1) + chr(val2)
 
         elif size == "s32" or size == "u32":
             val1 = value & 0x000000FF
@@ -447,7 +449,7 @@ class NibeWP_14107_14107(hsl20_4.BaseModule):
             val3 = val3 >> 16
             val4 = val4 >> 24
 
-            val = chr(val4) + chr(val3) + chr(val2) + chr(val1)
+            val = chr(val1) + chr(val2) + chr(val3) + chr(val4)
 
         return val
 
@@ -456,15 +458,20 @@ class NibeWP_14107_14107(hsl20_4.BaseModule):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
         # connect the socket, think of it as connecting the cable to the address location
         s.connect((ipaddr, port))
-        self.DEBUG.set_value("last send",
-                             "Sending " + self.print_byte_array(bytearray(data)) + "to " + ipaddr + ":" + str(port))
-        s.send(data)
+        len_send = s.send(data)
         s.close()
+        # print("len_send = " + str(len_send) + "; len(data) = " + str(len(data)))
+        self.DEBUG.add_message("Msg. send to Nibe")
+        if len_send != len(data):
+            self.DEBUG.add_message("ERROR Size of data send != size of data provided in send_data")
+
+        self.DEBUG.set_value("Last send",
+                             self.print_byte_array(bytearray(data)) + " to " + ipaddr + ":" + str(port))
 
     def read_register(self, register):
         try:
             msg = "\xc0\x69\x02"
-            reg = self.get_hex_value(register, "u8")
+            reg = self.int2hex(register, "u16")
             msg = msg + reg
             chksm = self.calc_chk_sm(bytearray(msg))
             msg = msg + chr(chksm)
@@ -478,18 +485,20 @@ class NibeWP_14107_14107(hsl20_4.BaseModule):
         try:
             msg = "\xc0\x6b\x06"
 
-            reg = self.get_hex_value(register, "u8")
+            reg = self.int2hex(int(register), "u16")
             msg = msg + reg
 
             mode = self.g_register[register]["Mode"]
             if ("W" not in mode) and ("w" not in mode):
-                self.DEBUG.add_message("writeRegister: Register " + str(register) + " is read only. Aborting send.")
+                self.DEBUG.add_message("write_register: Register " + str(register) + " is read only. Aborting send.")
                 return
 
             factor = self.g_register[register]["Factor"]
             value = int(value * factor)
             # size = self.g_register[register]["Size"]
-            value = self.get_hex_value(value, "u32")
+            value = self.int2hex(value, "u32")  # u32
+            while len(value) < 4:
+                value = "\x00" + value
             msg = msg + value
 
             chksm = self.calc_chk_sm(bytearray(msg))
@@ -498,7 +507,7 @@ class NibeWP_14107_14107(hsl20_4.BaseModule):
             port = int(self._get_input_value(self.PIN_I_N_GWPORTSET))
             self.send_data(port, msg)
         except Exception as e:
-            self.DEBUG.add_message("ERROR writeRegister: " + str(e))
+            self.DEBUG.add_message("ERROR write_register: " + str(e))
 
     def print_byte_array(self, data):
         s = ""
@@ -646,12 +655,16 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_getHexValue(self):
         print("\n### test_getHexValue")
         tst = NibeWP_14107_14107(0)
-        data1 = tst.get_hex_value(156, 'u8')
-        self.assertEqual(data1, "\x00\x9c")
-        data1 = tst.get_hex_value(40004, 'u16')
-        self.assertEqual(data1, "\x9c\x44")
-        data1 = tst.get_hex_value(2621733731, 'u32')
-        self.assertEqual(data1, "\x9c\x44\x7b\x63")
+        tst.g_bigendian = True
+
+        tst.g_bigendian = False
+        data1 = tst.int2hex(156, 'u8') # 9C
+        self.assertEqual(data1, "\x9c\x00")
+        data1 = tst.int2hex(40004, 'u16') #9c 44
+        self.assertEqual(data1, "\x44\x9c")
+        data1 = tst.int2hex(2621733731, 'u32')
+        # self.assertEqual(data1, "\x9c\x44\x7b\x63")
+        self.assertEqual(data1, "\x63\x7b\x44\x9C")
 
     def test_parseData_x68(self):
         print("\n### test_parseData_x68")
@@ -714,6 +727,23 @@ class TestSequenceFunctions(unittest.TestCase):
         tst.parse_export(datafile)
         ret1 = tst.parse_data(bytearray(msg1))
         self.assertEqual(res1, ret1)
+
+    def test_write(self):
+        print("\n### test_write")
+        tst = NibeWP_14107_14107(0)
+        tst.debug_input_value[tst.PIN_I_S_GWIP] = "192.168.143.18"
+        tst.debug_input_value[tst.PIN_I_N_HSPORT] = 9999
+        tst.debug_input_value[tst.PIN_I_N_GWPORTGET] = 9999
+        tst.debug_input_value[tst.PIN_I_N_GWPORTSET] = 10000
+        tst.on_init()
+        datafile = open("export.csv", 'r')
+        tst.parse_export(datafile)
+
+        tst.g_bigendian = False
+        cmd = "47041:4" # ist: B7C1 = 47041 wird in WP angezeigt als -> 49591 = C1B7
+
+        tst.on_input_value(tst.PIN_I_S_CMDSET, cmd)
+        self.assertTrue(False)
 
 
 if __name__ == '__main__':
