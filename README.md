@@ -1,3 +1,4 @@
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 # 14107 NibeWP
 
 ## Beschreibung 
